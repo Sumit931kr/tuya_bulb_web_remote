@@ -205,11 +205,15 @@ brightnessColorSlider.addEventListener("input", (e) => {
   brightnessColorValue.textContent = `${brightness}%`;
   console.log(`Brightness (Color Page): ${brightness}%`);
 
-  controlBuldAPI({
-    power: powerSwitch.checked,
-    mode: "colour",
-    colorBrightness: brightness,
-  });
+  clearTimeout(debounceTimer);
+
+  debounceTimer = setTimeout(() => {
+    controlBuldAPI({
+      power: powerSwitch.checked,
+      mode: "colour",
+      colorBrightness: brightness,
+    });
+  }, 500);
   // You could apply a filter to the bulb image here for visual effect
 });
 
@@ -217,31 +221,61 @@ brightnessColorSlider.addEventListener("input", (e) => {
 function updateWhiteTempFromPicker(event) {
   const rect = whiteTempPicker.getBoundingClientRect();
   let x = event.clientX - rect.left;
-  x = Math.max(0, Math.min(x, rect.width)); // Clamp x
+  let y = event.clientY - rect.top;
+  x = Math.max(0, Math.min(x, rect.width));
+  y = Math.max(0, Math.min(y, rect.height));
 
-  // Map x to a temperature value (e.g., from 2000K to 6500K)
-  const minK = 2000;
-  const maxK = 6500;
-  const whiteTempK = minK + (x / rect.width) * (maxK - minK);
+  const whiteTempTuya = Math.round((x / rect.width) * 1000);
 
-  // Update indicator position
+  // Update indicator position and color
   whiteTempIndicator.style.left = `${x}px`;
-  whiteTempIndicator.style.top = `50%`; // Centered vertically
-  whiteTempIndicator.style.backgroundColor = `rgb(${Math.round(
-    255 - ((whiteTempK - minK) / (maxK - minK)) * 100
-  )}, ${Math.round(
-    255 - ((whiteTempK - minK) / (maxK - minK)) * 150
-  )}, ${Math.round(255 - ((whiteTempK - minK) / (maxK - minK)) * 255)})`; // Very rough visual, real calculation is complex
+  whiteTempIndicator.style.top = `${y}px`;
+  whiteTempIndicator.style.backgroundColor = `rgb(${255 - whiteTempTuya / 4}, ${255 - whiteTempTuya / 2}, ${255 - whiteTempTuya / 1})`; // rough approximation
   whiteTempIndicator.classList.remove("hidden");
 
-  console.log(`White Temperature Picker: ${Math.round(whiteTempK)}K`);
+  console.log(`White Temp: ${whiteTempTuya} (Tuya scale)`);
 
-controlBuldAPI({
-    power: powerSwitch.checked,
-    temperature: Math.round(whiteTempK)/10,
-    mode: "white",
-  });
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    controlBuldAPI({
+      power: powerSwitch.checked,
+      temperature: whiteTempTuya,
+      mode: "white",
+    });
+  }, 500);
 }
+
+// function updateWhiteTempFromPicker(event) {
+//   const rect = whiteTempPicker.getBoundingClientRect();
+//   let x = event.clientX - rect.left;
+//   x = Math.max(0, Math.min(x, rect.width)); // Clamp x
+
+//   // Map x to a temperature value (e.g., from 2000K to 6500K)
+//   const minK = 2000;
+//   const maxK = 6500;
+//   const whiteTempK = minK + (x / rect.width) * (maxK - minK);
+
+//   // Update indicator position
+//   whiteTempIndicator.style.left = `${x}px`;
+//   whiteTempIndicator.style.top = `50%`; // Centered vertically
+//   whiteTempIndicator.style.backgroundColor = `rgb(${Math.round(
+//     255 - ((whiteTempK - minK) / (maxK - minK)) * 100
+//   )}, ${Math.round(
+//     255 - ((whiteTempK - minK) / (maxK - minK)) * 150
+//   )}, ${Math.round(255 - ((whiteTempK - minK) / (maxK - minK)) * 255)})`; // Very rough visual, real calculation is complex
+//   whiteTempIndicator.classList.remove("hidden");
+
+//   console.log(`White Temperature Picker: ${Math.round(whiteTempK)}K`);
+//   clearTimeout(debounceTimer);
+
+//   debounceTimer = setTimeout(() => {
+//     controlBuldAPI({
+//       power: powerSwitch.checked,
+//       temperature: Math.round(whiteTempK) / 10,
+//       mode: "white",
+//     });
+//   }, 500);
+// }
 
 whiteTempPicker.addEventListener("mousedown", (e) => {
   isPickingColor = true; // Re-use flag for picking state
@@ -289,11 +323,15 @@ brightnessWhiteSlider.addEventListener("input", (e) => {
   brightnessWhiteValue.textContent = `${brightness}%`;
   console.log(`Brightness (White Page): ${brightness}%`);
 
-  controlBuldAPI({
-    power: powerSwitch.checked,
-    brightness: brightness,
-    mode: "white",
-  });
+  clearTimeout(debounceTimer);
+
+  debounceTimer = setTimeout(() => {
+    controlBuldAPI({
+      power: powerSwitch.checked,
+      brightness: brightness,
+      mode: "white",
+    });
+  }, 500);
   // You could apply a filter to the bulb image here for visual effect
 });
 
@@ -332,8 +370,10 @@ async function controlBuldAPI({
       body: JSON.stringify({
         power: power,
         rgb: rgb,
-        brightness: brightness? Number(brightness) * 10 : undefined,
-        colorBrightness: colorBrightness ? Number(colorBrightness) * 10 : undefined,
+        brightness: brightness ? Number(brightness) * 10 : undefined,
+        colorBrightness: colorBrightness
+          ? Number(colorBrightness) * 10
+          : undefined,
         temperature: temperature,
         mode: mode,
       }),

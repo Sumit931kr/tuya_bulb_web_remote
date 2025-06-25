@@ -6,11 +6,11 @@ const context = new TuyaContext({
   secretKey: process.env.SECRET_KEY,
 });
 
-console.log(context)
+// console.log(context)
 
 const deviceId = process.env.DEVICE_ID; // Your device ID
 
-console.log(deviceId)
+// console.log(deviceId)
 
 let lastUsedBuldData= {
 power: true,
@@ -84,7 +84,7 @@ async function controlBulb({ power=lastUsedBuldData.power, rgb=lastUsedBuldData.
     
     // Temperature (0–1000) - use temp_value_v2 for newer bulbs
     if (typeof temperature === 'number') {
-      const clampedTemperature = Math.max(0, Math.min(1000, temperature));
+      const clampedTemperature = Math.floor(Math.max(0, Math.min(1000, temperature)));
       commands.push({ code: 'temp_value_v2', value: clampedTemperature });
     }
   }
