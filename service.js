@@ -97,6 +97,14 @@ async function controlBulb({ power=lastUsedBuldData.power, rgb=lastUsedBuldData.
 
   // console.log("commands")
   // console.log(commands)
+
+    const devicedetail = await context.device.detail({
+    device_id: deviceId,
+  });
+  if(!devicedetail.success) {
+   console.log("Failed to get device details:", devicedetail);
+  }
+  console.log("Device details:",devicedetail);
   
   try {
     const response = await context.request({
@@ -147,33 +155,7 @@ function rgbToHSV(r, g, b) {
   };
 }
 
-// ✅ Example Usage with error handling
-async function example() {
-  try {
-    // For COLOR mode - RGB only
-    // console.log('Setting color mode...');
-    // await controlBulb({
-    //   power: true,
-    //   rgb: { r: 255, g: 0, b: 200 }, // Pink color
-    //   mode: 'colour' // Explicitly set color mode
-    // });
-    
-    // Wait a bit before next command
-    // await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // For WHITE mode - brightness and temperature only
-    console.log('Setting white mode...');
-    await controlBulb({
-      power: true,
-      brightness: 1000,    // 0–1000
-      temperature: 1000,   // 0–1000 (0=cool white, 1000=warm white)
-      mode: 'white'       // Explicitly set white mode
-    });
-    
-  } catch (error) {
-    console.error('Failed to control bulb:', error);
-  }
-}
+
 
 // Convenience functions for specific modes
 async function setColorMode({ power = true, rgb, brightness }) {
